@@ -1,5 +1,6 @@
 #include <QCoreApplication>
 #include <QProcess>
+#include <QDebug>
 #include <unistd.h>
 #include "dbus.hpp"
 #include "xorg.hpp"
@@ -7,13 +8,14 @@
 QProcess* lockProcess = new QProcess();
 
 //settings
-QString lockCommand = "gnome-screensaver-command -l";
+QString lockCommand = "gnome-screensaver-comman -l";
 int lowPercentage = 10, screenTimeout = 300, idleTimeout = 900;
 
 //triggers
 bool doLowPercentage = true, doIdle = true, doDPMSon = true, doDPMSoff = true, notifyBattery = true, notifyDPMS = true;
 
 void doDPMS(int timeout) {
+    qDebug() << "dpms" << timeout;
     if (dpms()) {
         dpmsSet(0, 0, timeout);
     } else {
@@ -26,6 +28,7 @@ void doDPMS(int timeout) {
 }
 
 bool doLock() {
+    qDebug() << "lock screen";
     if (!lockCommand.isEmpty()) {
         if (lockProcess->startDetached(lockCommand)) {
             return true;
@@ -40,6 +43,7 @@ bool doLock() {
 }
 
 bool doSuspend() {
+    qDebug() << "suspend";
     if (canSuspend() && allowedSuspend()) {
         suspend();
         return true;
@@ -51,6 +55,7 @@ bool doSuspend() {
 }
 
 bool doHibernate() {
+    qDebug() << "hibernate";
     if (canHibernate() && allowedHibernate()) {
         hibernate();
         return true;
@@ -66,6 +71,15 @@ int main()
     QCoreApplication::setApplicationName("Qt Simple Power Manager");
 
     int percentage = 0, idle = 0;
+
+    qDebug() << "battery on:        " << batteryOn();
+    qDebug() << "battery percentage:" << batteryPercentage();
+    qDebug() << "can suspend:       " << canSuspend();
+    qDebug() << "can hibernate:     " << canHibernate();
+    qDebug() << "allowed suspend:   " << allowedSuspend();
+    qDebug() << "allowed hibernate: " << allowedHibernate();
+    qDebug() << "allowed stop:      " << allowedStop();
+    qDebug() << "allowed restart:   " << allowedRestart();
 
     while (true) {
         if (batteryOn()) {
