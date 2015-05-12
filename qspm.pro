@@ -4,8 +4,8 @@ TARGET = qspm
 
 TEMPLATE = app
 
-SOURCES += main.cpp dbus.cpp xorg.cpp
+SOURCES += main.cpp acpi.cpp dbus.cpp xorg.cpp
 
-HEADERS  += dbus.hpp xorg.hpp
+HEADERS  += acpi.hpp dbus.hpp xorg.hpp
 
 LIBS += -lX11 -lXss -lXext

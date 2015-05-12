@@ -1,14 +1,16 @@
 #include <QCoreApplication>
 #include <QProcess>
 #include <QDebug>
+#include <QtConcurrentRun>
 #include <unistd.h>
+#include "acpi.hpp"
 #include "dbus.hpp"
 #include "xorg.hpp"
 
 QProcess* lockProcess = new QProcess();
 
 //settings
-QString lockCommand = "gnome-screensaver-comman -l";
+QString lockCommand = "gnome-screensaver-command -l";
 int lowPercentage = 10, screenTimeout = 300, idleTimeout = 900;
 
 //triggers
@@ -66,6 +68,23 @@ bool doHibernate() {
     }
 }
 
+void ACPI() {
+    int fd;
+    QString event;
+    fd = socketConnect("/var/run/acpid.socket");
+    if (fd >= 0) {
+        while (true) {
+            event = socketRead(fd);
+            if (event.contains("button/power PBTN")) {
+                notify("ACPI", "Power button");
+            }
+            if (event.contains("button/sleep SBTN")) {
+                notify("ACPI", "Sleep button");
+            }
+        }
+    }
+}
+
 int main()
 {
     QCoreApplication::setApplicationName("Qt Simple Power Manager");
@@ -80,6 +99,8 @@ int main()
     qDebug() << "allowed hibernate: " << allowedHibernate();
     qDebug() << "allowed stop:      " << allowedStop();
     qDebug() << "allowed restart:   " << allowedRestart();
+
+    QtConcurrent::run(ACPI);
 
     while (true) {
         if (batteryOn()) {
