@@ -2,8 +2,8 @@
 #include <QProcess>
 #include <QDebug>
 #include <QtConcurrentRun>
+#include <QtNetwork/QLocalSocket>
 #include <unistd.h>
-#include "acpi.hpp"
 #include "dbus.hpp"
 #include "xorg.hpp"
 
@@ -69,18 +69,18 @@ bool doHibernate() {
 }
 
 void ACPI() {
-    int fd;
+    QLocalSocket socket;
     QString event;
-    fd = socketConnect("/var/run/acpid.socket");
-    if (fd >= 0) {
-        while (true) {
-            event = socketRead(fd);
-            if (event.contains("button/power PBTN")) {
-                notify("ACPI", "Power button");
-            }
-            if (event.contains("button/sleep SBTN")) {
-                notify("ACPI", "Sleep button");
-            }
+
+    socket.connectToServer("/var/run/acpid.socket", QLocalSocket::ReadOnly);
+    while (true) {
+        socket.waitForReadyRead(-1);
+        event = socket.readLine();
+        if (event.contains("button/power PBTN")) {
+            notify("ACPI", "Power button");
+        }
+        if (event.contains("button/sleep SBTN")) {
+            notify("ACPI", "Sleep button");
         }
     }
 }
